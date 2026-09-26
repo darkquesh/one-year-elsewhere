@@ -5,28 +5,49 @@ import { SaveSystem } from './save.js';
 import { toggleFullscreen } from './platform.js';
 import { audio } from './audio.js';
 import { statEvents } from './statEvents.js';
+import { phoneEngine } from './phoneEngine.js';
+import { mapEngine } from './mapEngine.js';
+import { eventEngine } from './eventEngine.js';
 
 export function setupInputListeners() {
   window.addEventListener('keydown', (e) => {
     // Ignore input if user is typing in a form field
     if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
 
-    // If an overlay is active, let overlay handle its own keys (or close overlay on Esc)
+    // If an overlay is active, let overlay handle its own keys (or close overlay on Esc/P/M)
     if (screenStack.activeOverlay) {
       if (e.key === 'Escape') {
         e.preventDefault();
         screenStack.closeOverlay();
+        return;
+      }
+      if ((e.key === 'p' || e.key === 'P') && screenStack.activeOverlay === document.getElementById('modal-phone')) {
+        e.preventDefault();
+        screenStack.closeOverlay();
+        return;
+      }
+      if ((e.key === 'm' || e.key === 'M') && screenStack.activeOverlay === document.getElementById('modal-map')) {
+        e.preventDefault();
+        screenStack.closeOverlay();
+        return;
       }
       return;
     }
 
     // Numbers 1-5: Choice selection
     if (['1', '2', '3', '4', '5'].includes(e.key)) {
-      const idx = parseInt(e.key, 10) - 1;
-      const choiceBtns = document.querySelectorAll('.choice-btn');
-      if (choiceBtns && choiceBtns[idx]) {
-        e.preventDefault();
-        choiceBtns[idx].click();
+      const activeScreen = screenStack.peek();
+      if (activeScreen === 'screen-game-loop') {
+        // STRICT GATE: only allow selection if choices are currently waiting for input
+        if (!eventEngine.canSelectChoice() || dialogueRunner.isTyping) {
+          return;
+        }
+        const idx = parseInt(e.key, 10) - 1;
+        const choiceBtns = document.querySelectorAll('.choice-btn:not(:disabled)');
+        if (choiceBtns && choiceBtns[idx]) {
+          e.preventDefault();
+          choiceBtns[idx].click();
+        }
       }
       return;
     }
@@ -37,13 +58,13 @@ export function setupInputListeners() {
       if (activeScreen === 'screen-game-loop') {
         e.preventDefault();
         const handled = dialogueRunner.handleAdvanceInput();
-        if (!handled) {
+        if (!handled && eventEngine.canSelectChoice()) {
           // If dialogue is not waiting for advance and choices are visible, activate focused choice
-          const focusedChoice = document.querySelector('.choice-btn:focus');
+          const focusedChoice = document.querySelector('.choice-btn:not(:disabled):focus');
           if (focusedChoice) {
             focusedChoice.click();
           } else {
-            const firstChoice = document.querySelector('.choice-btn');
+            const firstChoice = document.querySelector('.choice-btn:not(:disabled)');
             if (firstChoice) firstChoice.focus();
           }
         }
@@ -136,8 +157,26 @@ export function setupInputListeners() {
       return;
     }
 
-    // M: Toggle audio mute
+    // P: Toggle Exchange Phone
+    if (e.key === 'p' || e.key === 'P') {
+      if (screenStack.peek() === 'screen-game-loop') {
+        e.preventDefault();
+        phoneEngine.togglePhone();
+      }
+      return;
+    }
+
+    // M: Toggle Campus & Town Map
     if (e.key === 'm' || e.key === 'M') {
+      if (screenStack.peek() === 'screen-game-loop') {
+        e.preventDefault();
+        mapEngine.toggleMap();
+      }
+      return;
+    }
+
+    // U: Toggle audio mute
+    if (e.key === 'u' || e.key === 'U') {
       e.preventDefault();
       const isMuted = audio.toggleMute();
       statEvents.emit('toast', {

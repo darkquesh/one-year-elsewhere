@@ -1,7 +1,7 @@
 // Central Game State Tree (Pure Serializable Data Only)
 import { statEvents } from './statEvents.js';
 
-export const CURRENT_SCHEMA_VERSION = 6;
+export const CURRENT_SCHEMA_VERSION = 7;
 
 export class GameState {
   constructor() {
@@ -21,6 +21,7 @@ export class GameState {
       isMilestoneWeek: false,
       month: 1,            // Backwards-compatible equivalent (Month 1 to 12)
       playtime: 0,
+      currentEventId: null,// Active event being viewed (for perfect refresh restoration)
       seed: Date.now()
     };
 
@@ -91,6 +92,60 @@ export class GameState {
       textSpeed: 'normal',
       isMuted: false
     };
+
+    // --- Modern Life-Sim State Extensions (Schema v7) ---
+    this.phone = {
+      unreadCount: 1,
+      activeChat: 'group_exchange',
+      repliedThreads: [], // Track thread IDs answered
+      activeFeedPostIdx: 0
+    };
+
+    this.relationships = {
+      maya: 15,
+      julian: 20,
+      chloe: 15,
+      leo: 10
+    };
+
+    this.clocks = {
+      coordinatorScrutiny: 0, // 0 to 4
+      burnoutCount: 0,        // 0 to 4
+      promWeeksLeft: 10
+    };
+
+    this.tension = {
+      active: false,
+      currentDanger: 0, // 0 to 100
+      currentActivityId: null,
+      inBust: false
+    };
+
+    this.map = {
+      activeLocation: 'loc_quad',
+      visitedLocations: ['loc_quad'],
+      actionsTakenThisWeek: 0,
+      maxActionsPerWeek: 1
+    };
+  }
+
+  // Safe NPC affection modification [0, 100]
+  modifyAffection(npcId, delta) {
+    if (typeof this.relationships[npcId] === 'undefined') {
+      this.relationships[npcId] = 10;
+    }
+    const oldVal = this.relationships[npcId];
+    const newVal = Math.max(0, Math.min(100, oldVal + delta));
+    this.relationships[npcId] = newVal;
+
+    statEvents.emit('affectionChanged', {
+      npcId,
+      oldVal,
+      newVal,
+      delta: newVal - oldVal
+    });
+
+    return newVal;
   }
 
   // Safe stat mutation with bounds clamping [0, 100] and pub/sub notification
@@ -147,7 +202,30 @@ export class GameState {
   deserialize(jsonString) {
     try {
       const data = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
-      Object.assign(this, data);
+      this.version = data.version || CURRENT_SCHEMA_VERSION;
+      this.meta = { ...this.meta, ...(data.meta || {}) };
+      this.rpg = { ...this.rpg, ...(data.rpg || {}) };
+      this.player = { ...this.player, ...(data.player || {}) };
+      if (data.po !== undefined) this.po = data.po;
+      this.courses = { ...this.courses, ...(data.courses || {}) };
+      this.stats = { ...this.stats, ...(data.stats || {}) };
+      this.statModifiers = data.statModifiers || [];
+      this.violations = { ...this.violations, ...(data.violations || {}) };
+      this.flags = { ...this.flags, ...(data.flags || {}) };
+      this.journal = data.journal || this.journal;
+      this.seenEvents = data.seenEvents || [];
+      this.settings = { ...this.settings, ...(data.settings || {}) };
+      this.phone = { ...this.phone, ...(data.phone || {}) };
+      this.relationships = { ...this.relationships, ...(data.relationships || {}) };
+      this.clocks = { ...this.clocks, ...(data.clocks || {}) };
+      this.tension = { ...this.tension, ...(data.tension || {}) };
+      this.map = {
+        activeLocation: 'loc_quad',
+        visitedLocations: ['loc_quad'],
+        actionsTakenThisWeek: 0,
+        maxActionsPerWeek: 1,
+        ...(data.map || {})
+      };
       return true;
     } catch (e) {
       console.error('[GameState] Deserialization failed:', e);

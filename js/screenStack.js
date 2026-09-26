@@ -23,6 +23,10 @@ export class ScreenStack {
 
     this.stack.push(id);
     nextEl.classList.add('active');
+
+    try {
+      localStorage.setItem('esc_active_screen', id);
+    } catch (e) {}
   }
 
   pop() {
@@ -38,6 +42,10 @@ export class ScreenStack {
     const prevId = this.peek();
     const prevEl = this.screens.get(prevId);
     if (prevEl) prevEl.classList.add('active');
+
+    try {
+      if (prevId) localStorage.setItem('esc_active_screen', prevId);
+    } catch (e) {}
 
     return topId;
   }

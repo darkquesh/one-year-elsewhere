@@ -46,12 +46,12 @@ export class SaveSystem {
     return null;
   }
 
-  static save(slot = 0) {
+  static save(slot = 0, silent = false) {
     const key = this.getSlotKey(slot);
     const json = gameState.serialize();
     const success = this.atomicWrite(key, json);
 
-    if (success) {
+    if (success && !silent) {
       statEvents.emit('toast', {
         message: slot === 'auto' ? 'Autosaved' : `Saved to Slot ${slot + 1}`,
         type: 'info'
@@ -60,7 +60,7 @@ export class SaveSystem {
     return success;
   }
 
-  static load(slot = 0) {
+  static load(slot = 0, silent = false) {
     const key = this.getSlotKey(slot);
     const data = this.atomicRead(key);
     if (!data) return false;
@@ -68,10 +68,12 @@ export class SaveSystem {
     const migrated = this.migrate(data);
     gameState.deserialize(migrated);
 
-    statEvents.emit('toast', {
-      message: `Loaded Slot ${slot === 'auto' ? 'Autosave' : slot + 1}`,
-      type: 'info'
-    });
+    if (!silent) {
+      statEvents.emit('toast', {
+        message: `Loaded Slot ${slot === 'auto' ? 'Autosave' : slot + 1}`,
+        type: 'info'
+      });
+    }
     return true;
   }
 
@@ -133,6 +135,13 @@ export class SaveSystem {
           }
         };
         v = 6;
+      } else if (v === 6) {
+        data.phone = data.phone || { unreadCount: 1, activeChat: 'group_exchange', repliedThreads: [] };
+        data.relationships = data.relationships || { maya: 15, julian: 20, chloe: 15, leo: 10 };
+        data.clocks = data.clocks || { coordinatorScrutiny: 0, burnoutCount: 0, promWeeksLeft: 10 };
+        data.tension = data.tension || { active: false, currentDanger: 0, currentActivityId: null, inBust: false };
+        data.map = data.map || { activeLocation: 'loc_quad', visitedLocations: ['loc_quad'] };
+        v = 7;
       }
       data.version = v;
     }

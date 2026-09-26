@@ -2561,5 +2561,109 @@ export const EVENTS = [
         feedback: 'You walk toward the parking lot wiping a stray tear. It\'s time to face the airport gate.'
       }
     ]
+  },
+
+  // =========================================================================
+  // HIGH-RISK PROACTIVE EXPERIENCES (TENSION & ALIBI MINIGAMES)
+  // =========================================================================
+  {
+    id: 'evt_quarry_bonfire_weed',
+    title: 'The Midnight Quarry Bonfire Call',
+    weeks: [11, 12, 13, 14],
+    speaker: 'Leo Romero',
+    text: 'Leo catches you after 6th period by the lockers. "Big bonfire tonight out at the old quarry. No parents, acoustic guitars, and someone brought sweet green herbs from the city. Are you coming or are you a square?"',
+    choices: [
+      {
+        text: 'Hop on Leo\'s bicycle pegs and head out to the quarry bonfire (High Thrill / Risk).',
+        triggerTension: 'weed_bonfire'
+      },
+      {
+        text: 'Politely decline: "Host parents are waiting for family dinner tonight."',
+        deltas: { hostFamilyBond: 6, adaptation: 2 },
+        feedback: 'Leo smirks and rolls his eyes playfully: "Family first, I get it. Rain check exchangee."'
+      },
+      {
+        text: 'Warn Leo that coordinator Peterson has been patrolling the neighborhood.',
+        deltas: { academics: 3, adaptation: 4 },
+        feedback: 'Leo laughs it off, but thanks you for looking out for him.'
+      }
+    ]
+  },
+  {
+    id: 'evt_senior_kegger_party',
+    title: 'The Off-Campus Senior Kegger',
+    weeks: [7, 8, 9, 10],
+    speaker: 'Julian Vance',
+    text: 'The varsity football team just won their homecoming qualifier! A classmate\'s parents are out of town for the weekend and the backyard keg is already tapped. Red plastic cups are everywhere.',
+    choices: [
+      {
+        text: 'Grab a red cup and dive straight into the backyard beer pong tournament!',
+        triggerTension: 'binge_drinking'
+      },
+      {
+        text: 'Sip a canned soda, enjoy the music, and leave before the neighbors call the police.',
+        deltas: { social: 8, happiness: 5, adaptation: 4 },
+        feedback: 'You dance, chat with classmates, and head home on time. Responsible and fun!'
+      },
+      {
+        text: 'Excuse yourself immediately: "I cannot risk my exchange visa on alcohol."',
+        deltas: { academics: 4, hostFamilyBond: 4, social: -3 },
+        feedback: 'A few kids tease you, but Julian pats your back: "Respect. Keep your scholarship safe."'
+      }
+    ]
+  },
+  {
+    id: 'evt_underground_rave_invitation',
+    title: 'Neon Underground Warehouse Rave',
+    weeks: [22, 23, 24, 25],
+    speaker: 'Indie Senior Clique',
+    text: 'Bass rattles the windows of a rusted industrial warehouse outside town. A flyer in your pocket promises an all-night underground electronic set with hypnotic laser light shows and mystery party pills.',
+    choices: [
+      {
+        text: 'Slip through the heavy steel doors into the strobe-lit crowd (Extreme Thrill).',
+        triggerTension: 'rave_drugs'
+      },
+      {
+        text: 'Turn around and head back to the diner for late night pancakes with Maya.',
+        deltas: { social: 7, happiness: 6, hostFamilyBond: 3 },
+        feedback: 'You and Maya split a giant stack of blueberry pancakes while laughing about school rumors.'
+      }
+    ]
+  },
+  {
+    id: 'evt_backroad_joyride',
+    title: 'Car Keys Tossed Across the Hood',
+    weeks: [17, 18, 19, 20],
+    speaker: 'Classmate Kyle',
+    text: 'Kyle tosses a jingling set of car keys onto the diner table. "My older brother is passed out in the booth. His vintage Mustang is parked outside. Want to take it for a spin down the winding country highway?"',
+    choices: [
+      {
+        text: 'Catch the keys and start the roaring V8 engine (Forbidden Driving!).',
+        triggerTension: 'joyriding'
+      },
+      {
+        text: 'Toss the keys back onto the table: "Operating motorized vehicles is an instant program expulsion."',
+        deltas: { academics: 5, adaptation: 5 },
+        feedback: 'Kyle shrugs and slips the keys back into his pocket. You kept your record crystal clean.'
+      }
+    ]
+  },
+  {
+    id: 'evt_midnight_window_sneakout',
+    title: 'Tapping on the Second-Story Window',
+    weeks: [15, 16, 26, 27],
+    speaker: 'Pebble on Glass',
+    text: 'It is 1:45 AM. A tiny pebble clicks against your bedroom glass. Below in the moonlit garden stands a figure motioning for you to climb down the oak tree and meet them in the misty park.',
+    choices: [
+      {
+        text: 'Slide open the window screen and shimmy down the oak tree branches into the night.',
+        triggerTension: 'sneak_out'
+      },
+      {
+        text: 'Text back from your phone: "Host mom is awake reading downstairs, too risky tonight!"',
+        deltas: { hostFamilyBond: 4, happiness: 2 },
+        feedback: 'They send a crying emoji and a heart back. You drift off to sleep safely in your warm bed.'
+      }
+    ]
   }
 ];

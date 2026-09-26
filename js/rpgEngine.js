@@ -7,6 +7,7 @@ import { audio } from './audio.js';
 import { i18n } from './i18n/i18n.js';
 import { getIconSvg } from './data/icons.js';
 import { RPG_LEVEL_TITLES, RPG_ITEMS, RPG_PERKS, RPG_QUESTS, getXPToNextLevel } from './data/rpgData.js';
+import { SaveSystem } from './save.js';
 
 export class RPGEngine {
   constructor() {
@@ -93,6 +94,8 @@ export class RPGEngine {
       message: i18n.t('rpg.perk_unlocked_toast', { name: perkName }),
       type: 'gain'
     });
+
+    SaveSystem.save('auto', true);
 
     this.renderCharacterSheetModal();
     return true;
@@ -258,6 +261,7 @@ export class RPGEngine {
       // Wire unlock buttons
       perksGrid.querySelectorAll('.btn-unlock-perk').forEach(btn => {
         btn.addEventListener('click', () => {
+          btn.disabled = true;
           this.unlockPerk(btn.dataset.perk);
         });
       });

@@ -20,21 +20,110 @@ import { getIconSvg } from './data/icons.js';
 import { i18n } from './i18n/i18n.js';
 import { WeeklyEngine, MILESTONES } from './weeklyEngine.js';
 import { rpgEngine } from './rpgEngine.js';
+import { phoneEngine } from './phoneEngine.js';
+import { tensionEngine } from './tensionEngine.js';
+import { mapEngine } from './mapEngine.js';
 
-// Expose gameState globally for debug & modals
+// Expose engines globally for debugging
 window.gameState = gameState;
+window.phoneEngine = phoneEngine;
+window.tensionEngine = tensionEngine;
+window.mapEngine = mapEngine;
 
 export function getMonthDisplayName(month) {
   return i18n.t(`months.${month}`) || `Month ${month}`;
 }
 
+let appInitialized = false;
+let autoSaveDebounceTimer = null;
+
+export function triggerAutoSave() {
+  const activeScreen = screenStack.peek();
+  if (activeScreen === 'screen-game-loop') {
+    clearTimeout(autoSaveDebounceTimer);
+    autoSaveDebounceTimer = setTimeout(() => {
+      SaveSystem.save('auto', true);
+      localStorage.setItem('esc_active_screen', 'screen-game-loop');
+    }, 250);
+  }
+}
+
+function restoreActiveSession() {
+  const activeScreen = localStorage.getItem('esc_active_screen');
+  if (!activeScreen || activeScreen === 'screen-title') {
+    updateSaveSlotLabels();
+    return;
+  }
+
+  // Restore active 40-week game loop
+  if (activeScreen === 'screen-game-loop' && SaveSystem.hasSave('auto')) {
+    if (SaveSystem.load('auto', true)) {
+      if (gameState.player && gameState.player.destCountry) {
+        console.log('[App] Restoring active game session at week', gameState.meta.week);
+        startGameLoop(true);
+        statEvents.emit('toast', {
+          message: 'Game session restored',
+          type: 'info'
+        });
+        return;
+      }
+    }
+  }
+
+  // Restore onboarding screen if player refreshed during setup flow
+  if (SaveSystem.hasSave('auto') && SaveSystem.load('auto', true)) {
+    switch (activeScreen) {
+      case 'screen-home-country':
+        renderHomeCountryScreen();
+        screenStack.push('screen-home-country');
+        return;
+      case 'screen-funding':
+        renderFundingScreen();
+        screenStack.push('screen-funding');
+        return;
+      case 'screen-program-type':
+        renderProgramTypeScreen();
+        screenStack.push('screen-program-type');
+        return;
+      case 'screen-envelope-reveal':
+        renderModeAEnvelopeScreen();
+        screenStack.push('screen-envelope-reveal');
+        return;
+      case 'screen-ranking':
+        renderModeBRankingScreen();
+        screenStack.push('screen-ranking');
+        return;
+      case 'screen-po':
+        renderPOScreen();
+        screenStack.push('screen-po');
+        return;
+      case 'screen-arrival':
+        renderArrivalScreen();
+        screenStack.push('screen-arrival');
+        return;
+      case 'screen-courses':
+        renderCourseSelectionScreen();
+        screenStack.push('screen-courses');
+        return;
+    }
+  }
+
+  // Fallback to title screen
+  localStorage.setItem('esc_active_screen', 'screen-title');
+  updateSaveSlotLabels();
+}
+
 function initApp() {
+  if (appInitialized) return;
+  appInitialized = true;
+
   i18n.init();
   initScreenRegistry();
   initThemeAndSettings();
   initHUD();
   setupInputListeners();
   bindUIEvents();
+  restoreActiveSession();
 
   console.log('[App] Exchange Student Simulator initialized.');
 }
@@ -161,7 +250,7 @@ function updateAudioSettingsButtons() {
     const isMuted = audio.isMuted;
     const icon = isMuted ? getIconSvg('audioOff', 15) : getIconSvg('audioOn', 15);
     const label = isMuted ? i18n.t('settings.master_audio_muted') : i18n.t('settings.master_audio_on');
-    btnAudio.innerHTML = `${icon} <span style="vertical-align: middle; margin-left: 4px;">${label}</span>`;
+    btnAudio.innerHTML = `${icon} <span style="vertical-align: middle; margin-left: 4px;">${label} [U]</span>`;
   }
 
   if (btnMusic) {
@@ -344,6 +433,37 @@ function updateGameLoopHUD() {
     if (mobileValEl) mobileValEl.textContent = val;
     if (barEl) barEl.style.width = `${val}%`;
   });
+
+  // Update Narrative Progress Clocks (Citizen Sleeper / Blades in the Dark Style)
+  const pipsScrutiny = document.getElementById('pips-scrutiny');
+  if (pipsScrutiny) {
+    const scrutinyLevel = Math.min(4, gameState.violations?.strikeCount || 0);
+    const pips = pipsScrutiny.querySelectorAll('.pip');
+    pips.forEach((pip, idx) => {
+      pip.classList.toggle('filled', idx < scrutinyLevel);
+    });
+  }
+
+  const valProm = document.getElementById('val-clock-prom');
+  if (valProm) {
+    const weeksToProm = Math.max(0, 33 - currentWeek);
+    valProm.textContent = weeksToProm === 0 ? 'Tonight!' : `Wk 33 (${weeksToProm} wks)`;
+  }
+
+  const pipsBurnout = document.getElementById('pips-burnout');
+  if (pipsBurnout) {
+    const hap = gameState.stats.happiness || 65;
+    const burnoutLevel = hap < 40 ? Math.min(4, Math.floor((50 - hap) / 10) + 1) : 0;
+    const pips = pipsBurnout.querySelectorAll('.pip');
+    pips.forEach((pip, idx) => {
+      pip.classList.toggle('filled-blue', idx < burnoutLevel);
+    });
+  }
+
+  // Update Smartphone Unread Badge
+  if (phoneEngine && phoneEngine.updateNotificationBadge) {
+    phoneEngine.updateNotificationBadge();
+  }
 }
 
 function renderTimelineRail(currentWeek) {
@@ -404,6 +524,36 @@ function initHUD() {
     }
   });
 
+  // Inject Vector SVGs into Modern Life-Sim DOM elements
+  const modernIconMap = {
+    'icon-quick-phone': 'phone',
+    'icon-quick-map': 'map',
+    'icon-clock-scrutiny': 'strike',
+    'icon-clock-prom': 'heart',
+    'icon-clock-burnout': 'snowflake',
+    'icon-tab-chats': 'message',
+    'icon-tab-feed': 'camera',
+    'tension-icon-header': 'flame',
+    'icon-map-header': 'mapPin'
+  };
+
+  Object.entries(modernIconMap).forEach(([id, name]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = getIconSvg(name, 16);
+    }
+  });
+
+  // Initialize Modern Life-Sim Engines
+  const modalPhone = document.getElementById('modal-phone');
+  if (modalPhone) phoneEngine.init(modalPhone);
+
+  const modalTension = document.getElementById('modal-tension');
+  if (modalTension) tensionEngine.init(modalTension);
+
+  const modalMap = document.getElementById('modal-map');
+  if (modalMap) mapEngine.init(modalMap);
+
   // Re-translate HUD and active screens when language changes
   statEvents.on('languageChanged', ({ locale }) => {
     refreshActiveScreenAndUI();
@@ -442,6 +592,7 @@ function initHUD() {
   });
 
   statEvents.on('endingReached', ({ endingId, reason }) => {
+    localStorage.removeItem('esc_active_screen');
     const ending = EndingsManager.evaluateEnding() || {
       id: endingId,
       badge: 'plane',
@@ -454,6 +605,7 @@ function initHUD() {
     EndingsManager.renderEndingScreen(endingWrapper, ending);
     screenStack.push('screen-ending');
   });
+
   statEvents.on('rpgXPChanged', ({ xp, xpToNext, level, delta }) => {
     updateRPGHUD(level, xp, xpToNext);
   });
@@ -463,6 +615,36 @@ function initHUD() {
     // Update level pill in character sheet header too
     const sheetLvlEl = document.getElementById('rpg-sheet-level');
     if (sheetLvlEl) sheetLvlEl.textContent = `Lvl ${level}`;
+  });
+
+  // Reactive auto-save on stats and progress
+  statEvents.on('statChanged', () => triggerAutoSave());
+  statEvents.on('affectionChanged', () => triggerAutoSave());
+  statEvents.on('xpAwarded', () => triggerAutoSave());
+  statEvents.on('strikeAdded', () => triggerAutoSave());
+  statEvents.on('weekAdvanced', () => triggerAutoSave());
+
+  // Window unload & pagehide sync for crash-safe / refresh-safe persistence
+  window.addEventListener('beforeunload', () => {
+    const active = screenStack.peek();
+    if (active === 'screen-game-loop') {
+      SaveSystem.save('auto', true);
+      localStorage.setItem('esc_active_screen', 'screen-game-loop');
+    } else if (active && active !== 'screen-title' && active !== 'screen-ending') {
+      SaveSystem.save('auto', true);
+      localStorage.setItem('esc_active_screen', active);
+    }
+  });
+
+  window.addEventListener('pagehide', () => {
+    const active = screenStack.peek();
+    if (active === 'screen-game-loop') {
+      SaveSystem.save('auto', true);
+      localStorage.setItem('esc_active_screen', 'screen-game-loop');
+    } else if (active && active !== 'screen-title' && active !== 'screen-ending') {
+      SaveSystem.save('auto', true);
+      localStorage.setItem('esc_active_screen', active);
+    }
   });
 }
 
@@ -511,15 +693,17 @@ function bindUIEvents() {
     audio.init();
     audio.playClick();
     gameState.reset();
+    localStorage.removeItem('esc_active_screen');
     renderHomeCountryScreen();
     screenStack.push('screen-home-country');
+    SaveSystem.save('auto', true);
   });
 
   document.getElementById('btn-continue-game').addEventListener('click', () => {
     audio.init();
     audio.playClick();
-    if (SaveSystem.load('auto') || SaveSystem.load(0)) {
-      startGameLoop();
+    if (SaveSystem.load('auto', true) || SaveSystem.load(0, true)) {
+      startGameLoop(true);
     } else {
       showToast(i18n.t('hud.no_save_found'), 'loss');
     }
@@ -535,6 +719,31 @@ function bindUIEvents() {
   document.getElementById('btn-close-settings').addEventListener('click', () => {
     audio.playClick();
     screenStack.closeOverlay();
+  });
+
+  // Settings Return to Main Menu button
+  const btnReturnTitle = document.getElementById('btn-return-title');
+  if (btnReturnTitle) {
+    btnReturnTitle.addEventListener('click', () => {
+      audio.playClick();
+      screenStack.closeOverlay();
+      localStorage.removeItem('esc_active_screen');
+      screenStack.stack = ['screen-title'];
+      screenStack.screens.forEach(el => el.classList.remove('active'));
+      const titleEl = document.getElementById('screen-title');
+      if (titleEl) titleEl.classList.add('active');
+      updateSaveSlotLabels();
+    });
+  }
+
+  // Backdrop click closes any active modal overlay
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        audio.playClick();
+        screenStack.closeOverlay();
+      }
+    });
   });
 
   document.getElementById('btn-close-backlog').addEventListener('click', () => {
@@ -558,6 +767,20 @@ function bindUIEvents() {
   }
 
   // Quick toolbar buttons
+  const btnPhone = document.getElementById('btn-quick-phone');
+  if (btnPhone) {
+    btnPhone.addEventListener('click', () => {
+      phoneEngine.togglePhone();
+    });
+  }
+
+  const btnMap = document.getElementById('btn-quick-map');
+  if (btnMap) {
+    btnMap.addEventListener('click', () => {
+      mapEngine.toggleMap();
+    });
+  }
+
   const btnBacklog = document.getElementById('btn-quick-backlog');
   if (btnBacklog) {
     btnBacklog.addEventListener('click', () => {
@@ -1246,6 +1469,7 @@ function renderCourseSelectionScreen() {
   confirmBtn.disabled = selectedElectives.length !== 2;
 
   confirmBtn.onclick = () => {
+    confirmBtn.disabled = true;
     audio.playClick();
     gameState.courses.electives = [...selectedElectives];
     startGameLoop();
@@ -1258,17 +1482,23 @@ function renderCourseSelectionScreen() {
 // ---------------------------------------------------------------------------
 // Screen 9: Main Game Loop (40-Week Academic Year Lifecycle)
 // ---------------------------------------------------------------------------
-function startGameLoop() {
+function startGameLoop(isResume = false) {
   screenStack.push('screen-game-loop');
+  localStorage.setItem('esc_active_screen', 'screen-game-loop');
 
-  gameState.meta.weekEventIndex = 0;
+  if (!isResume) {
+    gameState.meta.weekEventIndex = 0;
+  } else {
+    gameState.meta.weekEventIndex = gameState.meta.weekEventIndex || 0;
+  }
   gameState.meta.weekTotalEvents = 2; // Multiple interactive narrative events per week
 
-  document.documentElement.setAttribute('data-country', gameState.player.destCountry);
-  audio.setCountryAmbient(gameState.player.destCountry);
+  const destCountry = gameState.player.destCountry || 'usa';
+  document.documentElement.setAttribute('data-country', destCountry);
+  audio.setCountryAmbient(destCountry);
 
   // Update HUD
-  const dest = COUNTRIES[gameState.player.destCountry] || COUNTRIES.usa;
+  const dest = COUNTRIES[destCountry] || COUNTRIES.usa;
   const flagEl = document.getElementById('hud-flag');
   if (flagEl) flagEl.innerHTML = getFlagSvg(dest.id, 'hud');
   updateGameLoopHUD();
@@ -1283,6 +1513,11 @@ function startGameLoop() {
     updateRPGHUD(gameState.rpg.level, gameState.rpg.xp, gameState.rpg.xpToNext);
   }
 
+  // Update phone notification badge
+  if (phoneEngine) {
+    phoneEngine.updateNotificationBadge();
+  }
+
   // Initialize Dialogue Runner & Event Engine
   const dialogueBody = document.getElementById('dialogue-body');
   const dialogueSpeaker = document.getElementById('dialogue-speaker');
@@ -1293,7 +1528,10 @@ function startGameLoop() {
   dialogueRunner.init(dialogueBody, dialogueSpeaker, dialogueCaret, dialoguePrompt);
   eventEngine.init(choicesContainer, () => onEventFinished());
 
-  // Load Week 1 first event immediately
+  // Save auto slot now that game loop is active
+  SaveSystem.save('auto', true);
+
+  // Load turn
   loadTurn(gameState.meta.week || 1);
 }
 
@@ -1313,6 +1551,9 @@ function loadTurn(week) {
 
 // Callback triggered whenever a dialogue choice outcome is completed
 function onEventFinished() {
+  // Clear event ID since event has completed
+  gameState.meta.currentEventId = null;
+
   // Check premature game over
   const prematureEnding = EndingsManager.evaluateEnding();
   if (prematureEnding) {
@@ -1328,6 +1569,7 @@ function onEventFinished() {
     // Progress to next event within the SAME week
     gameState.meta.weekEventIndex = currentEventIdx + 1;
     updateGameLoopHUD();
+    SaveSystem.save('auto', true);
     eventEngine.loadWeekEvent(currentWk, gameState.meta.weekEventIndex);
   } else {
     // Completed all events for this week -> advance to next week!

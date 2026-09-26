@@ -458,12 +458,38 @@
               </div>
             </div>
 
-            <!-- Narrative Dialogue Card -->
-            <div id="dialogue-card" class="dialogue-card">
-              <span id="dialogue-speaker" class="speaker-badge">Narrator</span>
-              <div id="dialogue-body" class="dialogue-text">Welcome to your exchange student journey abroad...</div>
-              <span id="dialogue-caret" class="dialogue-caret"></span>
-              <div id="dialogue-prompt" class="dialogue-prompt" data-i18n="dialogue.advance_prompt">[Space / Click to Advance]</div>
+            <!-- Narrative Progress Clocks (Citizen Sleeper / Blades in the Dark Style) -->
+            <div id="narrative-clocks-bar" class="glass-panel clocks-strip">
+              <div class="clock-item" id="clock-scrutiny" title="Coordinator Scrutiny: Rises when curfew is broken or absences occur. At 4: Inspection!">
+                <span class="clock-icon" style="color: #f43f5e;"><span id="icon-clock-scrutiny" style="display:flex;"></span></span>
+                <span class="clock-label">PO Scrutiny:</span>
+                <div class="clock-pips" id="pips-scrutiny">
+                  <span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span>
+                </div>
+              </div>
+              <div class="clock-item" id="clock-prom" title="Prom / Homecoming Countdown: Build bond with someone before the big night!">
+                <span class="clock-icon" style="color: #f43f5e;"><span id="icon-clock-prom" style="display:flex;"></span></span>
+                <span class="clock-label">Prom Dance:</span>
+                <strong id="val-clock-prom" style="color: #f43f5e; font-family: var(--font-mono); font-size: 0.8rem;">Week 33</strong>
+              </div>
+              <div class="clock-item" id="clock-burnout" title="Homesick / Burnout Meter: Increases if Happiness stays low. At 4: Emotional crisis week!">
+                <span class="clock-icon" style="color: #38bdf8;"><span id="icon-clock-burnout" style="display:flex;"></span></span>
+                <span class="clock-label">Homesick:</span>
+                <div class="clock-pips" id="pips-burnout">
+                  <span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Narrative Dialogue Card with Expressive Character Portrait -->
+            <div id="dialogue-card" class="dialogue-card dialogue-card-with-portrait">
+              <div id="dialogue-portrait-container" class="dialogue-portrait-box" style="display: none;"></div>
+              <div class="dialogue-main-content">
+                <span id="dialogue-speaker" class="speaker-badge">Narrator</span>
+                <div id="dialogue-body" class="dialogue-text">Welcome to your exchange student journey abroad...</div>
+                <span id="dialogue-caret" class="dialogue-caret"></span>
+                <div id="dialogue-prompt" class="dialogue-prompt" data-i18n="dialogue.advance_prompt">[Space / Click to Advance]</div>
+              </div>
             </div>
 
             <!-- Interactive Decision Choices -->
@@ -473,7 +499,14 @@
           <!-- RIGHT COLUMN: Journal Feed & Quick Toolbar -->
           <aside class="game-col-right">
             <!-- Quick Toolbar -->
-            <div id="quick-toolbar" class="glass-panel quick-toolbar" style="display: flex; gap: 0.4rem; justify-content: space-between;">
+            <div id="quick-toolbar" class="glass-panel quick-toolbar" style="display: flex; gap: 0.35rem; justify-content: space-between; flex-wrap: wrap;">
+              <button id="btn-quick-phone" class="btn btn-icon tooltip-host" style="position: relative;" title="Exchange Phone [P]">
+                <span id="icon-quick-phone" style="display:flex;"></span>
+                <span id="phone-unread-badge" class="badge-unread-dot" style="display: none;">1</span>
+              </button>
+              <button id="btn-quick-map" class="btn btn-icon tooltip-host" title="Campus & Town Map [M]">
+                <span id="icon-quick-map" style="display:flex;"></span>
+              </button>
               <button id="btn-quick-character" class="btn btn-icon" data-i18n-title="toolbar.character" title="Character Sheet & Keepsakes [C]"></button>
               <button id="btn-quick-quests" class="btn btn-icon" data-i18n-title="toolbar.quests" title="Quest Log [Q]"></button>
               <button id="btn-quick-backlog" class="btn btn-icon" data-i18n-title="toolbar.backlog" title="View Dialogue Backlog [L]"></button>
@@ -547,7 +580,7 @@
           <div>
             <label data-i18n="settings.audio_header" style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Audio Controls</label>
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <button id="btn-toggle-audio" class="btn btn-secondary" style="width: 100%;">Master Audio: ON [M]</button>
+              <button id="btn-toggle-audio" class="btn btn-secondary" style="width: 100%;">Master Audio: ON [U]</button>
               <div style="display: flex; gap: 0.5rem;">
                 <button id="btn-toggle-music" class="btn btn-secondary" style="flex: 1;">Music: ON</button>
                 <button id="btn-toggle-sfx" class="btn btn-secondary" style="flex: 1;">SFX: ON</button>
@@ -571,6 +604,10 @@
                 <button class="btn btn-secondary btn-load-slot" data-slot="2" data-i18n="settings.load_slot">Load</button>
               </div>
             </div>
+          </div>
+
+          <div style="padding-top: 0.5rem; border-top: 1px solid var(--surface-border);">
+            <button id="btn-return-title" class="btn btn-secondary" style="width: 100%; border-color: rgba(244,63,94,0.4); color: #f43f5e;">Return to Main Menu</button>
           </div>
         </div>
       </div>
@@ -642,6 +679,117 @@
           <div id="rpg-tab-quests" class="rpg-tab-pane" style="display: none;">
             <div id="rpg-quests-list"></div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         EXCHANGE SMARTPHONE MODAL
+         ======================================================================= -->
+    <div id="modal-phone" class="modal-overlay">
+      <div class="modal-window phone-chassis">
+        <!-- Phone Status Bar -->
+        <div class="phone-status-bar">
+          <span class="phone-clock">11:42 PM</span>
+          <div class="phone-status-icons">
+            <span id="phone-icon-signal">5G</span>
+            <span id="phone-icon-battery">84%</span>
+            <button id="btn-close-phone" class="btn btn-icon phone-close-btn">&times;</button>
+          </div>
+        </div>
+
+        <!-- Phone Header & Navigation Tabs -->
+        <div class="phone-nav-bar">
+          <button id="phone-tab-chats" class="phone-nav-tab active">
+            <span id="icon-tab-chats" style="display:flex;"></span>
+            <span>Messages</span>
+          </button>
+          <button id="phone-tab-feed" class="phone-nav-tab">
+            <span id="icon-tab-feed" style="display:flex;"></span>
+            <span>ExchangeGram</span>
+          </button>
+        </div>
+
+        <!-- Phone Screen View: Chats -->
+        <div id="phone-view-chats" class="phone-view-pane" style="display: flex;">
+          <div id="phone-chat-channel-list" class="phone-channels-column"></div>
+          <div class="phone-chat-content-column">
+            <div class="phone-chat-header">
+              <strong id="phone-active-chat-title">The Exiles</strong>
+            </div>
+            <div id="phone-messages-stream" class="phone-messages-stream"></div>
+            <div id="phone-replies-container" class="phone-replies-container"></div>
+          </div>
+        </div>
+
+        <!-- Phone Screen View: ExchangeGram Photo Feed -->
+        <div id="phone-view-feed" class="phone-view-pane" style="display: none;">
+          <div id="phone-feed-stream" class="phone-feed-stream"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         TENSION & HIGH-RISK SUSPENSE MODAL
+         ======================================================================= -->
+    <div id="modal-tension" class="modal-overlay">
+      <div class="modal-window tension-window">
+        <div class="tension-header-bar">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span id="tension-icon-header" style="color: #f43f5e; display: flex;"></span>
+            <div>
+              <h3 id="tension-modal-title" style="margin: 0; font-family: var(--font-ui); font-size: 1.15rem; color: #f43f5e;">High-Risk Escapade</h3>
+              <p id="tension-modal-subtitle" style="margin: 0; font-size: 0.82rem; color: var(--text-secondary);">Testing boundaries under the cover of night</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Danger Dial / Gauge -->
+        <div class="tension-gauge-panel">
+          <div class="tension-gauge-label">
+            <span>Current Exposure &amp; Danger:</span>
+            <strong id="tension-danger-val">35%</strong>
+          </div>
+          <div class="tension-track">
+            <div id="tension-danger-fill" class="tension-fill danger-low" style="width: 35%;"></div>
+          </div>
+          <div class="tension-heartbeat-indicator">
+            <span class="heartbeat-dot"></span>
+            <span class="heartbeat-text">Pulse Active • Rising Adrenaline</span>
+          </div>
+        </div>
+
+        <p id="tension-description-text" class="tension-body-desc"></p>
+
+        <!-- Push Luck vs Bail Actions Stack -->
+        <div id="tension-actions-stack" class="tension-actions-stack"></div>
+
+        <!-- Interrogation & Alibi View (Revealed on Bust) -->
+        <div id="tension-interrogation-view" class="tension-interrogation-view" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         CAMPUS & REGIONAL TOWN EXPLORATION MAP MODAL
+         ======================================================================= -->
+    <div id="modal-map" class="modal-overlay">
+      <div class="modal-window map-window">
+        <div class="map-modal-header">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span id="icon-map-header" style="color: var(--accent); display: flex;"></span>
+            <div>
+              <h3 style="margin: 0; font-family: var(--font-ui); font-size: 1.15rem; color: var(--text-primary);">Town &amp; Campus Map</h3>
+              <p style="margin: 0; font-size: 0.82rem; color: var(--text-secondary);">Explore local hotspots, visit peers, and pursue personal interests</p>
+            </div>
+          </div>
+          <button id="btn-close-map" class="btn btn-icon">&times;</button>
+        </div>
+
+        <div class="map-content-split">
+          <!-- Left: Location Hotspot Buttons Grid -->
+          <div id="map-locations-grid" class="map-locations-grid"></div>
+          <!-- Right: Selected Location Detail Pane & Actions -->
+          <div id="map-location-details-pane" class="map-location-details-pane"></div>
         </div>
       </div>
     </div>

@@ -9,12 +9,17 @@ import { statEvents } from './statEvents.js';
 import { getIconSvg } from './data/icons.js';
 import { WeeklyEngine, MILESTONES } from './weeklyEngine.js';
 import { rpgEngine } from './rpgEngine.js';
+import { getCharacterPortraitSvg } from './data/portraitsData.js';
+import { cultureShockEngine } from './cultureShockEngine.js';
+import { tensionEngine } from './tensionEngine.js';
 
 export class EventEngine {
   constructor() {
     this.currentEvent = null;
     this.choicesContainer = null;
     this.onTurnCompleteCallback = null;
+    this.isChoicePending = false;
+    this.isProcessingChoice = false;
   }
 
   init(choicesContainerEl, onTurnComplete) {
@@ -50,6 +55,17 @@ export class EventEngine {
       return true;
     };
 
+    // 0. Check if a specific event is active from session restoration
+    if (gameState.meta.currentEventId) {
+      const savedEvt = EVENTS.find(e => e.id === gameState.meta.currentEventId);
+      if (savedEvt) {
+        this.currentEvent = savedEvt;
+        console.log(`[EventEngine] Week ${week} Event restored from active session: "${savedEvt.title}" (${savedEvt.id})`);
+        this.renderCurrentEvent();
+        return;
+      }
+    }
+
     // 1. Check for dedicated Crucible Milestone for this week (prioritized on event 0)
     const milestoneDef = MILESTONES[week];
     if (milestoneDef && eventIdx === 0) {
@@ -59,6 +75,7 @@ export class EventEngine {
       );
       if (milestoneEvent && !gameState.seenEvents.includes(milestoneEvent.id)) {
         this.currentEvent = milestoneEvent;
+        gameState.meta.currentEventId = milestoneEvent.id;
         gameState.seenEvents.push(milestoneEvent.id);
         console.log(`[EventEngine] Week ${week} Event ${eventIdx + 1} Milestone Triggered: "${milestoneEvent.title}" (${milestoneEvent.id})`);
         this.renderCurrentEvent();
@@ -143,6 +160,7 @@ export class EventEngine {
     }
 
     this.currentEvent = selected;
+    gameState.meta.currentEventId = selected.id;
 
     // Track seen events in gameState
     if (!gameState.seenEvents.includes(this.currentEvent.id)) {
@@ -163,6 +181,9 @@ export class EventEngine {
   renderCurrentEvent() {
     if (!this.currentEvent) return;
 
+    this.isChoicePending = false;
+    this.isProcessingChoice = false;
+
     if (this.choicesContainer) {
       this.choicesContainer.innerHTML = '';
       this.choicesContainer.style.display = 'none';
@@ -173,16 +194,54 @@ export class EventEngine {
       ? `${this.currentEvent.speaker} • ${this.currentEvent.title}`
       : this.currentEvent.speaker;
 
+    // Detect speaker character for visual novel expressive portrait
+    const speakerLower = (this.currentEvent.speaker || '').toLowerCase();
+    let charId = null;
+    let mood = 'neutral';
+    if (speakerLower.includes('maya')) charId = 'maya';
+    else if (speakerLower.includes('julian')) charId = 'julian';
+    else if (speakerLower.includes('chloe') || speakerLower.includes('kenji')) charId = 'chloe';
+    else if (speakerLower.includes('leo')) charId = 'leo';
+    else if (speakerLower.includes('mom') || speakerLower.includes('sarah') || speakerLower.includes('host family')) charId = 'host_mom';
+    else if (speakerLower.includes('coordinator') || speakerLower.includes('peterson') || speakerLower.includes('principal')) charId = 'coordinator';
+
+    if (this.currentEvent.isCrisis) mood = 'shocked';
+    else if (this.currentEvent.isMilestone) mood = 'happy';
+
+    const portraitBox = document.getElementById('dialogue-portrait-container');
+    if (portraitBox) {
+      if (charId) {
+        portraitBox.style.display = 'flex';
+        portraitBox.innerHTML = getCharacterPortraitSvg(charId, mood, 96);
+      } else {
+        portraitBox.style.display = 'none';
+      }
+    }
+
+    // Process text through bilingual culture shock deciphering
+    const processedText = cultureShockEngine.filterDialogueText(this.currentEvent.text);
+
     // Run dialogue typewriter
     dialogueRunner.showDialogue(
       speakerDisplay,
-      this.currentEvent.text,
-      () => this.renderChoices()
+      processedText,
+      () => {
+        cultureShockEngine.bindDecipherEvents(document.getElementById('dialogue-body'));
+        this.renderChoices();
+      }
     );
+  }
+
+  canSelectChoice() {
+    return this.isChoicePending && !this.isProcessingChoice &&
+           !!this.choicesContainer && this.choicesContainer.style.display !== 'none';
   }
 
   renderChoices() {
     if (!this.currentEvent || !this.choicesContainer) return;
+
+    this.isChoicePending = true;
+    this.isProcessingChoice = false;
 
     this.choicesContainer.innerHTML = '';
     this.choicesContainer.style.display = 'flex';
@@ -210,6 +269,7 @@ export class EventEngine {
         } else {
           rpgBadgeHtml = `<span class="badge rpg-skill-badge unmet">${getIconSvg('lock', 12)} ${choice.skillReq.label} ${choice.skillReq.min}+</span>`;
           btn.classList.add('choice-locked');
+          btn.disabled = true;
           btn.title = `${choice.skillReq.label} ${choice.skillReq.min}+ required (Your current ${choice.skillReq.label}: ${curVal})`;
         }
       } else if (choice.approach) {
@@ -237,9 +297,10 @@ export class EventEngine {
   }
 
   handleChoiceSelect(choice, index) {
-    audio.playClick();
+    // 1. Strict anti-spam gate: ignore if choices are not actively waiting for input
+    if (!this.canSelectChoice()) return;
 
-    // RPG Skill Check Enforcement
+    // 2. RPG Skill Check Enforcement
     if (choice.skillReq) {
       const currentVal = gameState.stats[choice.skillReq.stat] || 0;
       if (currentVal < choice.skillReq.min) {
@@ -255,8 +316,33 @@ export class EventEngine {
       }
     }
 
+    // 3. Atomically lock choice processing to permanently block hotkey or click spamming
+    this.isProcessingChoice = true;
+    this.isChoicePending = false;
+
+    // 4. Immediately disable all buttons and remove them from the DOM
     if (this.choicesContainer) {
+      const btns = this.choicesContainer.querySelectorAll('.choice-btn');
+      btns.forEach(b => {
+        b.disabled = true;
+        b.style.pointerEvents = 'none';
+      });
       this.choicesContainer.style.display = 'none';
+      this.choicesContainer.innerHTML = '';
+    }
+
+    audio.playClick();
+
+    // High-Risk Tension & Alibi Minigame Trigger
+    if (choice.triggerTension) {
+      const currentWk = gameState.meta.week || 1;
+      gameState.addJournalEntry(currentWk, `[Week ${currentWk}] ${choice.text}`);
+      tensionEngine.startActivity(choice.triggerTension, () => {
+        if (this.onTurnCompleteCallback) {
+          this.onTurnCompleteCallback();
+        }
+      });
+      return;
     }
 
     // RPG Perk Stat Multipliers
