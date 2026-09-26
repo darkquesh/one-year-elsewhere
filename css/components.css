@@ -1,0 +1,999 @@
+/* ==========================================================================
+   UI Component Library (Glassmorphism, Stat Bars, Typewriter, Choices)
+   ========================================================================== */
+
+/* Glassmorphism Panel */
+.glass-panel {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.glass-panel:hover {
+  border-color: var(--surface-border-strong);
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.btn-primary:active {
+  background: var(--accent-active);
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border-color: var(--surface-border);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-2);
+  border-color: var(--surface-border-strong);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  color: var(--text-primary);
+  border-color: var(--surface-border-strong);
+  background: var(--surface-2);
+}
+
+.btn-lang {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
+.btn-lang.active {
+  border-color: var(--accent);
+  background: var(--accent-surface);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-icon svg {
+  display: block;
+  stroke: currentColor;
+}
+
+.stat-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.4rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.stat-icon-delta {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Stat Bars (Reactive HUD)
+   ========================================================================== */
+.stat-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  cursor: default;
+}
+
+.stat-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.stat-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+}
+
+.stat-val {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.stat-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1), background-color var(--transition-normal);
+}
+
+.stat-fill.academic   { background: var(--stat-academic); }
+.stat-fill.finance    { background: var(--stat-finance); }
+.stat-fill.happiness  { background: var(--stat-happiness); }
+.stat-fill.social     { background: var(--stat-social); }
+.stat-fill.adaptation { background: var(--stat-adapt); }
+.stat-fill.bond       { background: var(--stat-bond); }
+
+/* Critical pulsing (< 20 threshold) */
+.stat-item.critical .stat-track {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+.stat-item.critical .stat-fill {
+  background: var(--status-danger) !important;
+  animation: pulseCritical 1.4s infinite alternate;
+}
+
+/* Tooltip bubble hidden by default (enabled on desktop hover) */
+.tooltip-bubble {
+  display: none;
+}
+
+/* ==========================================================================
+   Typewriter Dialogue Box & Speaker Label
+   ========================================================================== */
+.dialogue-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border-strong);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+  box-shadow: var(--shadow-md);
+  min-height: 150px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.speaker-badge {
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-surface);
+  border: 1px solid var(--accent-glow);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.85rem;
+}
+
+.dialogue-text {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--text-primary);
+  flex: 1;
+  word-break: break-word;
+}
+
+.dialogue-caret {
+  display: inline-block;
+  width: 6px;
+  height: 1.05rem;
+  background: var(--accent);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: blink 0.9s infinite;
+}
+
+.dialogue-prompt {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   Choice Cards & Buttons
+   ========================================================================== */
+.choices-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.choice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.95rem 1.25rem;
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.choice-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.choice-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.choice-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.hotkey-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--surface-border);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.choice-rpg-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.rpg-skill-badge {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.rpg-skill-badge.met {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.rpg-skill-badge.unmet {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.rpg-style-badge {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent);
+  border-color: rgba(99, 102, 241, 0.3);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.choice-btn.choice-locked {
+  opacity: 0.6;
+  border-color: rgba(239, 68, 68, 0.25);
+  cursor: not-allowed;
+}
+
+.choice-btn.choice-locked:hover {
+  transform: none;
+  background: var(--surface-1);
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Country Selection & Ranking Cards
+   ========================================================================== */
+.country-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.country-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.country-card.selected,
+.glass-panel.selected,
+.selectable-card.selected {
+  border-color: var(--accent) !important;
+  background: var(--accent-surface) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 8px 24px var(--accent-glow) !important;
+  transform: translateY(-2px);
+}
+
+/* Universal Selectable Card */
+.selectable-card {
+  position: relative;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border-strong);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  cursor: pointer;
+  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.selectable-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Selection Indicator Badge & Radio */
+.selection-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.selectable-card.selected .selection-indicator {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.selection-indicator-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: inline-block;
+  transition: all var(--transition-fast);
+}
+
+.selectable-card.selected .selection-indicator-dot {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+/* Back button in headers */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--surface-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: 0.85rem;
+  align-self: flex-start;
+}
+
+.btn-back:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--accent);
+  transform: translateX(-3px);
+}
+
+.rank-pill {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.country-flag {
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  width: 48px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.country-flag svg,
+.country-flag-svg {
+  width: 48px;
+  height: 32px;
+  min-width: 48px;
+  min-height: 32px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  display: block;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.country-flag-svg.large {
+  width: 84px;
+  height: 56px;
+  min-width: 84px;
+  min-height: 56px;
+  border-radius: 6px;
+  margin: 0 auto 0.75rem auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.country-flag-svg.hud {
+  width: 36px;
+  height: 24px;
+  min-width: 36px;
+  min-height: 24px;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.country-name {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.country-stats-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Rank Priority Pill */
+.rank-pill {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.8rem;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Envelope Cinematic Reveal (Mode A)
+   ========================================================================== */
+.envelope-wrap {
+  width: 280px;
+  height: 180px;
+  margin: 2rem auto;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.envelope {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1f2533, #151923);
+  border: 2px solid var(--surface-border-strong);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+}
+
+.envelope:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 32px var(--accent-glow);
+}
+
+.envelope-seal {
+  font-size: 2.5rem;
+}
+
+/* ==========================================================================
+   Toasts & Delta Popups
+   ========================================================================== */
+.toast {
+  background: var(--surface-popover);
+  border: 1px solid var(--surface-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.25rem;
+  box-shadow: var(--shadow-md);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  animation: toastIn 0.3s ease-out forwards;
+}
+
+.toast.toast-gain { border-color: rgba(16, 185, 129, 0.4); color: #34d399; }
+.toast.toast-loss { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+
+/* ==========================================================================
+   40-Week Timeline Rail & Weekly Focus Allocation
+   ========================================================================== */
+.timeline-container {
+  gap: 0.5rem;
+}
+
+.timeline-rail {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 4px 0;
+  overflow-x: auto;
+}
+
+.timeline-pip {
+  flex: 1;
+  min-width: 4px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: all var(--transition-fast);
+  position: relative;
+  cursor: pointer;
+}
+
+.timeline-pip:hover {
+  height: 10px;
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.timeline-pip.past {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.timeline-pip.active {
+  background: var(--accent) !important;
+  box-shadow: 0 0 10px var(--accent-glow);
+  height: 10px;
+  transform: scaleY(1.3);
+}
+
+.timeline-pip.milestone {
+  border: 1px solid #fbbf24;
+  background: rgba(245, 158, 11, 0.25);
+}
+
+.timeline-pip.milestone.active {
+  background: #fbbf24 !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+}
+
+/* Timeline & Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   RPG Level & XP HUD Widget
+   ========================================================================== */
+.rpg-level-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.rpg-level-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.rpg-level-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rpg-level-pill {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #fff;
+  background: var(--accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px var(--accent-glow);
+}
+
+.rpg-title-text {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.rpg-xp-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.rpg-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #38bdf8);
+  border-radius: var(--radius-full);
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+.rpg-xp-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+
+/* ==========================================================================
+   RPG Character Sheet Modal Tabs & Layout
+   ========================================================================== */
+.rpg-tabs-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.rpg-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--surface-border);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rpg-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: var(--surface-border-strong);
+}
+
+.rpg-tab-btn.active {
+  background: var(--accent-surface);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.perk-unlocked {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  background: rgba(16, 185, 129, 0.06) !important;
+}
+
+.perk-locked {
+  border-color: var(--surface-border);
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   RPG HUD: Level Card & XP Bar (Left Sidebar Widget)
+   ========================================================================== */
+.rpg-level-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.rpg-level-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-glow), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.rpg-level-card:hover::before {
+  opacity: 1;
+}
+
+.rpg-level-card:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.rpg-level-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.45rem;
+}
+
+.rpg-level-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.rpg-title-text {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rpg-xp-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.rpg-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.rpg-xp-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+}
+
+/* ==========================================================================
+   RPG Character Sheet Modal - XP bar header strip
+   ========================================================================== */
+#rpg-sheet-xp-fill {
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* Tab pane visibility controlled by JS */
+.rpg-tab-pane {
+  padding-top: 1rem;
+  animation: fadeIn 0.18s ease;
+}
+
+.rpg-tabs-bar {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+/* Choice locked state */
+.choice-btn.choice-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.choice-btn.choice-locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* RPG approach / skill badges on choices */
+.rpg-skill-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.rpg-skill-badge.met {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.rpg-skill-badge.unmet {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.rpg-style-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.choice-rpg-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}

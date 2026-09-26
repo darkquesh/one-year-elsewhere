@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Exchange Student Simulator</title>
+  
+  <!-- Modern Typography (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/desktop.css">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Scenic Atmospheric Backdrop -->
+    <div id="scenic-backdrop" class="scenic-backdrop"></div>
+
+    <!-- Screen Stack -->
+    <main class="screen-stack">
+      
+      <!-- =====================================================================
+           SCREEN 1: TITLE SCREEN
+           ===================================================================== -->
+      <section id="screen-title" class="screen active">
+        <div class="flow-container" style="text-align: center; margin: auto;">
+          <div class="title-emblem" style="margin: 0 auto 1.25rem auto; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.28); border-radius: 50%; color: var(--accent); box-shadow: 0 0 24px rgba(99, 102, 241, 0.25);">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h1 style="font-family: var(--font-ui); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 0.75rem;">
+            <span data-i18n="title.name">Exchange Student</span> <span style="color: var(--accent);" data-i18n="title.simulator">Simulator</span>
+          </h1>
+          <p data-i18n="title.tagline" style="color: var(--text-secondary); font-size: 1.1rem; max-width: 520px; margin: 0 auto 1.5rem auto;">
+            Experience a life-changing academic year abroad. Navigate foreign high schools, culture shock, host family dynamics, and rule violations.
+          </p>
+
+          <!-- Language Selector Bar -->
+          <div class="lang-selector-bar title-lang-bar" style="margin-bottom: 1.75rem;">
+            <button class="btn btn-secondary btn-lang active" data-lang="en">English</button>
+            <button class="btn btn-secondary btn-lang" data-lang="tr">Türkçe</button>
+            <button class="btn btn-secondary btn-lang" data-lang="de">Deutsch</button>
+            <button class="btn btn-secondary btn-lang" data-lang="ja">日本語</button>
+            <button class="btn btn-secondary btn-lang" data-lang="es">Español</button>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.85rem; width: 100%; max-width: 320px; margin: 0 auto;">
+            <button id="btn-start-game" class="btn btn-primary" data-i18n="title.start_btn" style="font-size: 1.05rem; padding: 0.85rem;">
+              Start Exchange Year 
+            </button>
+            <button id="btn-continue-game" class="btn btn-secondary" data-i18n="title.continue_btn">
+              Continue / Load Save
+            </button>
+            <button id="btn-open-settings" class="btn btn-secondary" data-i18n="title.settings_btn">
+              Settings & Audio
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 2: HOME COUNTRY SELECTION
+           ===================================================================== -->
+      <section id="screen-home-country" class="screen">
+        <div class="flow-container">
+          <button class="btn-back" id="btn-back-home" data-i18n="home.back_btn">&larr; Back to Title</button>
+          <header class="screen-header">
+            <div>
+              <h2 class="screen-title" data-i18n="home.title">Where Are You From?</h2>
+              <p class="screen-subtitle" data-i18n="home.subtitle">Your home country sets your cultural instincts, native language, and academic background.</p>
+            </div>
+          </header>
+          <div id="home-country-grid" class="grid-cards"></div>
+          <div class="flow-action-bar">
+            <button id="btn-confirm-home" class="btn btn-primary" data-i18n="home.confirm_btn" disabled>
+              Next: Program Funding
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 3: PROGRAM FUNDING TYPE SELECTION (Right After Home Country)
+           ===================================================================== -->
+      <section id="screen-funding" class="screen">
+        <div class="flow-container">
+          <button class="btn-back" id="btn-back-funding" data-i18n="funding.back_btn">&larr; Back to Home Country</button>
+          <header class="screen-header">
+            <div>
+              <h2 class="screen-title" data-i18n="funding.title">Program Funding Type</h2>
+              <p class="screen-subtitle" data-i18n="funding.subtitle">How is your exchange student year financed?</p>
+            </div>
+          </header>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+            <!-- Fully Funded Scholarship Card -->
+            <div id="card-fund-scholarship" class="selectable-card">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <span class="badge" data-i18n="funding.scholarship_badge" style="background: rgba(52, 211, 153, 0.15); color: #34d399; font-weight: 700;">Full Scholarship</span>
+                <span data-i18n="funding.scholarship_stipend" style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399;">$80/mo Stipend</span>
+              </div>
+              <h3 data-i18n="funding.scholarship_title" style="font-family: var(--font-ui); font-size: 1.25rem; color: var(--text-primary); margin: 0.2rem 0;">Fully-Funded Scholarship</h3>
+              <p data-i18n="funding.scholarship_desc" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                Tuition, flights, and monthly living allowance are fully covered by a bilateral governmental scholarship. Financial pressure is low.
+              </p>
+              <div style="padding: 0.65rem 0.85rem; border-radius: 6px; background: rgba(255, 255, 255, 0.04); font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+                <div data-i18n="funding.scholarship_req_title" style="color: #34d399; font-weight: 600; margin-bottom: 0.2rem;"> Academic Report Requirement</div>
+                <div data-i18n="funding.scholarship_req_desc">Must maintain a 75+ GPA and submit monthly coordinator progress reports. Revocation warning issued if GPA slips.</div>
+              </div>
+              <div class="selection-indicator">
+                <span class="selection-indicator-dot"></span>
+                <span class="selection-indicator-text" data-i18n="funding.scholarship_btn">Select Scholarship</span>
+              </div>
+            </div>
+
+            <!-- Self-Paid Program Card -->
+            <div id="card-fund-selfpaid" class="selectable-card">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <span class="badge" data-i18n="funding.selfpaid_badge" style="background: rgba(248, 113, 113, 0.15); color: #f87171; font-weight: 700;">Self-Financed</span>
+                <span data-i18n="funding.selfpaid_savings" style="font-family: var(--font-mono); font-size: 0.85rem; color: #f87171;">$50/mo Savings</span>
+              </div>
+              <h3 data-i18n="funding.selfpaid_title" style="font-family: var(--font-ui); font-size: 1.25rem; color: var(--text-primary); margin: 0.2rem 0;">Self-Paid Program</h3>
+              <p data-i18n="funding.selfpaid_desc" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                Financed completely out-of-pocket through family savings. You possess total academic freedom and no mandatory scholarship reporting.
+              </p>
+              <div style="padding: 0.65rem 0.85rem; border-radius: 6px; background: rgba(255, 255, 255, 0.04); font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+                <div data-i18n="funding.selfpaid_warn_title" style="color: #f87171; font-weight: 600; margin-bottom: 0.2rem;"> Tight Personal Budget</div>
+                <div data-i18n="funding.selfpaid_warn_desc">Every dollar counts. High-ticket social events or snack cravings require budgeting and taking neighborhood odd jobs.</div>
+              </div>
+              <div class="selection-indicator">
+                <span class="selection-indicator-dot"></span>
+                <span class="selection-indicator-text" data-i18n="funding.selfpaid_btn">Select Self-Paid</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-action-bar">
+            <button id="btn-confirm-funding" class="btn btn-primary" data-i18n="funding.confirm_btn" disabled>
+              Next: Choose Destination Mode
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 4: PROGRAM TYPE SELECTION (Mode A vs Mode B)
+           ===================================================================== -->
+      <section id="screen-program-type" class="screen">
+        <div class="flow-container">
+          <button class="btn-back" id="btn-back-program-type" data-i18n="modes.back_btn">&larr; Back to Funding</button>
+          <header class="screen-header">
+            <div>
+              <h2 class="screen-title" data-i18n="modes.title">Choose Destination Mode</h2>
+              <p class="screen-subtitle" data-i18n="modes.subtitle">How will your destination country be decided?</p>
+            </div>
+          </header>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+            <!-- Mode A Card -->
+            <div id="card-mode-a" class="selectable-card">
+              <span class="badge" data-i18n="modes.mode_a_badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-weight: 700; align-self: flex-start;">Full Assignment</span>
+              <h3 data-i18n="modes.mode_a_title" style="font-family: var(--font-ui); font-size: 1.25rem; color: var(--text-primary); margin: 0.2rem 0;">Mode A &mdash; Random Draw (Sealed Envelope)</h3>
+              <p data-i18n="modes.mode_a_desc" style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
+                <em>"You submitted a general application. The world is waiting."</em><br><br>
+                You have no advance choice. You open the sealed official placement envelope to reveal where fate has assigned you!
+              </p>
+              <div class="selection-indicator">
+                <span class="selection-indicator-dot"></span>
+                <span class="selection-indicator-text" data-i18n="modes.mode_a_btn">Select Random Mode</span>
+              </div>
+            </div>
+
+            <!-- Mode B Card -->
+            <div id="card-mode-b" class="selectable-card">
+              <span class="badge" data-i18n="modes.mode_b_badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; font-weight: 700; align-self: flex-start;">Preference Match</span>
+              <h3 data-i18n="modes.mode_b_title" style="font-family: var(--font-ui); font-size: 1.25rem; color: var(--text-primary); margin: 0.2rem 0;">Mode B &mdash; Priority Preference List</h3>
+              <p data-i18n="modes.mode_b_desc" style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
+                <em>"You ranked your top 5 dream destinations. Matching awaits."</em><br><br>
+                Rank your top 5 destination countries (1 = highest priority). Probabilistic assignment decides if you land your #1 dream pick or a fallback!
+              </p>
+              <div class="selection-indicator">
+                <span class="selection-indicator-dot"></span>
+                <span class="selection-indicator-text" data-i18n="modes.mode_b_btn">Select Priority Mode</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-action-bar">
+            <button id="btn-confirm-program-type" class="btn btn-primary" data-i18n="modes.confirm_btn" disabled>
+              Continue to Placement
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 5A: ENVELOPE REVEAL (Mode A)
+           ===================================================================== -->
+      <section id="screen-envelope-reveal" class="screen">
+        <div class="flow-container" style="text-align: center;">
+          <button class="btn-back" id="btn-back-envelope" data-i18n="envelope.back_btn">&larr; Back to Mode Selection</button>
+          <h2 class="screen-title" data-i18n="envelope.title" style="justify-content: center;">Your Placement Letter Has Arrived!</h2>
+          <p class="screen-subtitle" data-i18n="envelope.subtitle">Click the envelope to unseal your destination country.</p>
+
+          <div id="envelope-clickable" class="envelope-wrap">
+            <div class="envelope">
+              <div class="envelope-seal"></div>
+              <strong data-i18n="envelope.official_seal" style="color: var(--text-primary); font-family: var(--font-ui);">OFFICIAL PLACEMENT</strong>
+              <small data-i18n="envelope.click_to_open" style="color: var(--text-tertiary);">Click to Open</small>
+            </div>
+          </div>
+
+          <div id="revealed-country-card" style="display: none;" class="glass-panel"></div>
+          <div class="flow-action-bar" style="display: flex; justify-content: center;">
+            <button id="btn-envelope-continue" class="btn btn-primary" data-i18n="envelope.continue_btn" style="display: none;">
+              Accept Placement & View PO Card
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 5B: PRIORITY RANKING (Mode B)
+           ===================================================================== -->
+      <section id="screen-ranking" class="screen">
+        <div class="flow-container">
+          <button class="btn-back" id="btn-back-ranking" data-i18n="ranking.back_btn">&larr; Back to Mode Selection</button>
+          <header class="screen-header">
+            <div>
+              <h2 class="screen-title" data-i18n="ranking.title">Rank Your Top 5 Destinations</h2>
+              <p class="screen-subtitle" data-i18n="ranking.subtitle">Tap 5 countries in order of preference (1st: ~50%, 2nd: ~25%, 3rd: ~13%, 4th: ~8%, 5th: ~4%).</p>
+            </div>
+            <div id="ranking-counter" style="font-family: var(--font-mono); font-weight: 700; color: var(--accent);">0 / 5 Selected</div>
+          </header>
+
+          <div id="ranking-country-grid" class="grid-cards"></div>
+
+          <div class="flow-action-bar">
+            <button id="btn-submit-ranking" class="btn btn-primary" data-i18n="ranking.submit_btn" disabled>
+              Submit Application & Draw Match
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 6: PLACEMENT ORGANIZATION (PO CARD)
+           ===================================================================== -->
+      <section id="screen-po" class="screen">
+        <div class="flow-container">
+          <header class="screen-header">
+            <div>
+              <h2 class="screen-title" data-i18n="po.title">Your Placement Organization (PO)</h2>
+              <p class="screen-subtitle" data-i18n="po.subtitle">Your regional program coordinator, school grade, and local ruleset.</p>
+            </div>
+          </header>
+
+          <div id="po-card-details" class="glass-panel" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+
+          <div class="flow-action-bar">
+            <button id="btn-confirm-po" class="btn btn-primary" data-i18n="po.continue_btn">
+              Confirm & Board Flight
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 7: ARRIVAL CUTSCENE
+           ===================================================================== -->
+      <section id="screen-arrival" class="screen">
+        <div class="flow-container" style="text-align: center;">
+          <div id="arrival-flag-container" style="display: flex; justify-content: center; margin-bottom: 0.85rem;"></div>
+          <h2 id="arrival-title" class="screen-title" style="justify-content: center;">Touchdown!</h2>
+          <div id="arrival-text" class="glass-panel" style="text-align: left; line-height: 1.7; margin: 1rem 0;"></div>
+          <div class="flow-action-bar">
+            <button id="btn-arrival-continue" class="btn btn-primary" data-i18n="arrival.continue_btn">
+              Go to High School Registration
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 8: COURSE SELECTION (TIMETABLE BUILDER)
+           ===================================================================== -->
+      <section id="screen-courses" class="screen">
+        <div class="flow-container">
+          <header class="screen-header">
+            <div>
+              <h2 class="screen-title" data-i18n="courses.title">Build Your High School Timetable</h2>
+              <p class="screen-subtitle" data-i18n="courses.subtitle">Core courses are mandatory. Choose 2 electives.</p>
+            </div>
+            <div id="pressure-badge" class="glass-panel" style="padding: 0.4rem 0.8rem; font-family: var(--font-mono); font-size: 0.85rem;">
+              <span data-i18n="courses.academic_pressure">Academic Pressure:</span> <strong id="pressure-val" style="color: var(--accent);">50</strong>
+            </div>
+          </header>
+
+          <h3 data-i18n="courses.core_heading" style="font-family: var(--font-ui); font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Mandatory Core Courses</h3>
+          <div id="core-courses-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem;"></div>
+
+          <h3 id="electives-heading" style="font-family: var(--font-ui); font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Pick 2 Electives (<span id="electives-count">0</span> / 2)</h3>
+          <div id="electives-grid" class="grid-cards"></div>
+
+          <div class="flow-action-bar">
+            <button id="btn-confirm-courses" class="btn btn-primary" data-i18n="courses.confirm_btn" disabled>
+              Finalize Timetable & Begin Year
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 9: MAIN GAME LOOP (3-Column Desktop / Mobile Responsive)
+           ===================================================================== -->
+      <section id="screen-game-loop" class="screen">
+        <div class="game-loop-grid">
+          
+          <!-- LEFT COLUMN: Student Profile & Stat Bars -->
+          <aside class="game-col-left">
+            <div class="glass-panel" style="display: flex; align-items: center; gap: 0.75rem;">
+              <span id="hud-flag" style="display: flex; align-items: center;"></span>
+              <div>
+                <strong id="hud-dest-name" style="font-family: var(--font-ui); font-size: 1.05rem; color: var(--text-primary);">United States</strong>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                  <span id="hud-grade-badge">Grade 11</span> &bull; <span id="hud-funding-badge">Funded</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- RPG Level & XP Tracker -->
+            <div id="hud-rpg-card" class="rpg-level-card tooltip-host" style="cursor: pointer;" title="Click to view Character Sheet [C]">
+              <div class="rpg-level-header">
+                <span id="hud-rpg-level" class="rpg-level-pill">Lvl 1</span>
+                <span id="hud-rpg-title" class="rpg-title-text">Novice Exchangee</span>
+              </div>
+              <div class="rpg-xp-track">
+                <div id="hud-rpg-xp-fill" class="rpg-xp-fill" style="width: 0%;"></div>
+              </div>
+              <div class="rpg-xp-label">
+                <span id="hud-rpg-xp-text">0 / 100 XP</span>
+                <span style="color: var(--accent);">Sheet [C] </span>
+              </div>
+            </div>
+
+            <!-- Stat Bar Monitor -->
+            <div class="glass-panel stat-bar-group">
+              <h4 data-i18n="hud.monitors_title" style="font-family: var(--font-ui); font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Live Stat Monitors</h4>
+              
+              <div class="stat-item tooltip-host" data-stat="academics">
+                <div class="stat-meta"><span class="stat-name">Academics</span><span id="stat-val-academics" class="stat-val">70</span></div>
+                <div class="stat-track"><div id="stat-bar-academics" class="stat-fill academic" style="width: 70%;"></div></div>
+                <div class="tooltip-bubble" data-i18n="stats.academics_tip">Academics: High performance secures scholarship and graduation honors.</div>
+              </div>
+
+              <div class="stat-item tooltip-host" data-stat="finance">
+                <div class="stat-meta"><span class="stat-name">Finance</span><span id="stat-val-finance" class="stat-val">60</span></div>
+                <div class="stat-track"><div id="stat-bar-finance" class="stat-fill finance" style="width: 60%;"></div></div>
+                <div class="tooltip-bubble" data-i18n="stats.finance_tip">Finance: Funds for dances, snacks, and emergency transit.</div>
+              </div>
+
+              <div class="stat-item tooltip-host" data-stat="happiness">
+                <div class="stat-meta"><span class="stat-name">Happiness</span><span id="stat-val-happiness" class="stat-val">65</span></div>
+                <div class="stat-track"><div id="stat-bar-happiness" class="stat-fill happiness" style="width: 65%;"></div></div>
+                <div class="tooltip-bubble" data-i18n="stats.happiness_tip">Happiness: Mental fortitude. Reaching 0 triggers burnout return.</div>
+              </div>
+
+              <div class="stat-item tooltip-host" data-stat="social">
+                <div class="stat-meta"><span class="stat-name">Social</span><span id="stat-val-social" class="stat-val">50</span></div>
+                <div class="stat-track"><div id="stat-bar-social" class="stat-fill social" style="width: 50%;"></div></div>
+                <div class="tooltip-bubble" data-i18n="stats.social_tip">Social: Friendships and high school peer connection.</div>
+              </div>
+
+              <div class="stat-item tooltip-host" data-stat="adaptation">
+                <div class="stat-meta"><span class="stat-name">Adaptation</span><span id="stat-val-adaptation" class="stat-val">45</span></div>
+                <div class="stat-track"><div id="stat-bar-adaptation" class="stat-fill adaptation" style="width: 45%;"></div></div>
+                <div class="tooltip-bubble" data-i18n="stats.adaptation_tip">Adaptation: Fluency and cultural resilience in the host country.</div>
+              </div>
+
+              <div class="stat-item tooltip-host" data-stat="hostFamilyBond">
+                <div class="stat-meta"><span class="stat-name">Host Family Bond</span><span id="stat-val-hostFamilyBond" class="stat-val">60</span></div>
+                <div class="stat-track"><div id="stat-bar-hostFamilyBond" class="stat-fill bond" style="width: 60%;"></div></div>
+                <div class="tooltip-bubble" data-i18n="stats.hostFamilyBond_tip">Host Family Bond: Trust and love with your host parents.</div>
+              </div>
+            </div>
+
+            <!-- Strikes & Rules Widget -->
+            <div class="glass-panel" style="font-size: 0.85rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <strong data-i18n="hud.standing_label" style="color: var(--text-primary);">Program Standing:</strong>
+                <span id="hud-strikes-badge" style="font-family: var(--font-mono); font-weight: 700; color: #34d399;">0 / 4 Strikes</span>
+              </div>
+              <div id="hud-po-location" style="color: var(--text-secondary);">Location: Suburban</div>
+              <div id="hud-po-strictness" style="color: var(--text-secondary);">Coordinator: Moderate</div>
+            </div>
+          </aside>
+
+          <!-- CENTER COLUMN: Scenic Scene View, Typewriter & Choices -->
+          <section class="game-col-center">
+            <!-- Timeline Strip (40-Week Academic Master Calendar) -->
+            <div class="glass-panel timeline-container" style="padding: 0.65rem 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                  <span id="hud-term-badge" class="badge" style="background: rgba(96,165,250,0.18); color: #60a5fa; font-weight: 700; font-size: 0.75rem;">Term 1: Fall</span>
+                  <strong id="hud-week-name" style="font-family: var(--font-ui); font-size: 1.05rem; color: var(--accent);">Week 1 / 40 (Arrival &amp; Orientation)</strong>
+                  <span id="hud-event-pill" class="badge" style="background: rgba(129, 140, 248, 0.18); color: #818cf8; font-weight: 700; font-size: 0.75rem;">Event 1 / 2</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span id="hud-milestone-indicator" class="badge" style="display: none; background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;"><span id="hud-milestone-icon" style="display:flex;"></span><span id="hud-milestone-text">Milestone</span></span>
+                  <span id="hud-diploma-status" style="font-size: 0.8rem; color: var(--text-secondary);">Certificate of Attendance</span>
+                </div>
+              </div>
+              <!-- 40-Segment Mini Timeline Rail -->
+              <div id="timeline-rail" class="timeline-rail" aria-label="40-week timeline rail"></div>
+
+              <!-- Compact Mobile HUD Stat Strip (Inside Timeline Container) -->
+              <div id="mobile-stat-strip" class="mobile-hud-strip mobile-only">
+                <div class="mobile-stat-pill" data-stat="academics">
+                  <span class="stat-dot academic"></span>
+                  <span class="stat-abbr" data-i18n="stats.short_academics">Acad</span>
+                  <span id="mobile-stat-val-academics" class="stat-val">70</span>
+                </div>
+                <div class="mobile-stat-pill" data-stat="finance">
+                  <span class="stat-dot finance"></span>
+                  <span class="stat-abbr" data-i18n="stats.short_finance">Fin</span>
+                  <span id="mobile-stat-val-finance" class="stat-val">60</span>
+                </div>
+                <div class="mobile-stat-pill" data-stat="happiness">
+                  <span class="stat-dot happiness"></span>
+                  <span class="stat-abbr" data-i18n="stats.short_happiness">Hap</span>
+                  <span id="mobile-stat-val-happiness" class="stat-val">65</span>
+                </div>
+                <div class="mobile-stat-pill" data-stat="social">
+                  <span class="stat-dot social"></span>
+                  <span class="stat-abbr" data-i18n="stats.short_social">Soc</span>
+                  <span id="mobile-stat-val-social" class="stat-val">50</span>
+                </div>
+                <div class="mobile-stat-pill" data-stat="adaptation">
+                  <span class="stat-dot adaptation"></span>
+                  <span class="stat-abbr" data-i18n="stats.short_adaptation">Adapt</span>
+                  <span id="mobile-stat-val-adaptation" class="stat-val">45</span>
+                </div>
+                <div class="mobile-stat-pill" data-stat="hostFamilyBond">
+                  <span class="stat-dot bond"></span>
+                  <span class="stat-abbr" data-i18n="stats.short_bond">Bond</span>
+                  <span id="mobile-stat-val-hostFamilyBond" class="stat-val">60</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Narrative Dialogue Card -->
+            <div id="dialogue-card" class="dialogue-card">
+              <span id="dialogue-speaker" class="speaker-badge">Narrator</span>
+              <div id="dialogue-body" class="dialogue-text">Welcome to your exchange student journey abroad...</div>
+              <span id="dialogue-caret" class="dialogue-caret"></span>
+              <div id="dialogue-prompt" class="dialogue-prompt" data-i18n="dialogue.advance_prompt">[Space / Click to Advance]</div>
+            </div>
+
+            <!-- Interactive Decision Choices -->
+            <div id="choices-container" class="choices-stack"></div>
+          </section>
+
+          <!-- RIGHT COLUMN: Journal Feed & Quick Toolbar -->
+          <aside class="game-col-right">
+            <!-- Quick Toolbar -->
+            <div id="quick-toolbar" class="glass-panel quick-toolbar" style="display: flex; gap: 0.4rem; justify-content: space-between;">
+              <button id="btn-quick-character" class="btn btn-icon" data-i18n-title="toolbar.character" title="Character Sheet & Keepsakes [C]"></button>
+              <button id="btn-quick-quests" class="btn btn-icon" data-i18n-title="toolbar.quests" title="Quest Log [Q]"></button>
+              <button id="btn-quick-backlog" class="btn btn-icon" data-i18n-title="toolbar.backlog" title="View Dialogue Backlog [L]"></button>
+              <button id="btn-quick-journal" class="btn btn-icon" data-i18n-title="toolbar.journal" title="View Journal [J]"></button>
+              <button id="btn-quick-save" class="btn btn-icon" data-i18n-title="toolbar.save" title="Quick Save [S]"></button>
+              <button id="btn-quick-settings" class="btn btn-icon" data-i18n-title="toolbar.settings" title="Settings [Esc]"></button>
+            </div>
+
+            <!-- Mini Journal Feed -->
+            <div id="mini-journal-panel" class="glass-panel" style="flex: 1; display: flex; flex-direction: column;">
+              <h4 data-i18n="hud.diary_title" style="font-family: var(--font-ui); font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.6rem;">Weekly Diary Log</h4>
+              <div id="mini-journal-feed" style="overflow-y: auto; font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+                <div>Departed home airport with excitement and butterflies.</div>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN 10: ENDING SCREEN
+           ===================================================================== -->
+      <section id="screen-ending" class="screen">
+        <div id="ending-content-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
+      </section>
+
+    </main>
+
+    <!-- =======================================================================
+         MODAL / DRAWER OVERLAYS
+         ======================================================================= -->
+    
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-overlay">
+      <div class="modal-window">
+        <div style="padding: 1.25rem; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center;">
+          <h3 data-i18n="settings.header" style="font-family: var(--font-ui); color: var(--text-primary); font-size: 1.15rem;">Game Settings</h3>
+          <button id="btn-close-settings" class="btn btn-icon">&times;</button>
+        </div>
+        <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem; overflow-y: auto;">
+          <div>
+            <label data-i18n="settings.language" style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Game Language</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.4rem;">
+              <button class="btn btn-secondary btn-lang active" data-lang="en">English</button>
+              <button class="btn btn-secondary btn-lang" data-lang="tr">Türkçe</button>
+              <button class="btn btn-secondary btn-lang" data-lang="de">Deutsch</button>
+              <button class="btn btn-secondary btn-lang" data-lang="ja">日本語</button>
+              <button class="btn btn-secondary btn-lang" data-lang="es">Español</button>
+            </div>
+          </div>
+
+          <div>
+            <label data-i18n="settings.theme" style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Visual Theme</label>
+            <div style="display: flex; gap: 0.75rem;">
+              <button id="btn-theme-dark" class="btn btn-secondary" data-i18n="settings.theme_dark" style="flex: 1;">Dark Theme</button>
+              <button id="btn-theme-light" class="btn btn-secondary" data-i18n="settings.theme_light" style="flex: 1;">Light Theme</button>
+            </div>
+          </div>
+
+          <div>
+            <label data-i18n="settings.speed" style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Text Typewriter Speed</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-speed" data-speed="slow" data-i18n="settings.speed_slow" style="flex: 1;">Slow</button>
+              <button class="btn btn-secondary btn-speed active" data-speed="normal" data-i18n="settings.speed_normal" style="flex: 1;">Normal</button>
+              <button class="btn btn-secondary btn-speed" data-speed="fast" data-i18n="settings.speed_fast" style="flex: 1;">Fast</button>
+              <button class="btn btn-secondary btn-speed" data-speed="instant" data-i18n="settings.speed_instant" style="flex: 1;">Instant</button>
+            </div>
+          </div>
+
+          <div>
+            <label data-i18n="settings.audio_header" style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Audio Controls</label>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <button id="btn-toggle-audio" class="btn btn-secondary" style="width: 100%;">Master Audio: ON [M]</button>
+              <div style="display: flex; gap: 0.5rem;">
+                <button id="btn-toggle-music" class="btn btn-secondary" style="flex: 1;">Music: ON</button>
+                <button id="btn-toggle-sfx" class="btn btn-secondary" style="flex: 1;">SFX: ON</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label data-i18n="settings.saves_header" style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Save Slots Management</label>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-save-slot" data-slot="0" style="flex: 1;">Save Slot 1</button>
+                <button class="btn btn-secondary btn-load-slot" data-slot="0" data-i18n="settings.load_slot">Load</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-save-slot" data-slot="1" style="flex: 1;">Save Slot 2</button>
+                <button class="btn btn-secondary btn-load-slot" data-slot="1" data-i18n="settings.load_slot">Load</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-secondary btn-save-slot" data-slot="2" style="flex: 1;">Save Slot 3</button>
+                <button class="btn btn-secondary btn-load-slot" data-slot="2" data-i18n="settings.load_slot">Load</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backlog Slide-Up Drawer -->
+    <div id="drawer-backlog" class="drawer-bottom">
+      <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center;">
+        <h3 data-i18n="dialogue.backlog_header" style="font-family: var(--font-ui); font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;"><span id="icon-backlog-header" style="display:flex; color: var(--accent);"></span>Dialogue Backlog [L]</h3>
+        <button id="btn-close-backlog" class="btn btn-icon"><span id="icon-close-backlog" style="display:flex;"></span></button>
+      </div>
+      <div id="backlog-list" style="padding: 1.25rem; overflow-y: auto; max-height: 50vh;"></div>
+    </div>
+
+    <!-- Full Journal Modal -->
+    <div id="modal-journal" class="modal-overlay">
+      <div class="modal-window">
+        <div style="padding: 1.25rem; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center;">
+          <h3 data-i18n="dialogue.journal_header" style="font-family: var(--font-ui); color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;"><span id="icon-journal-header" style="display:flex; color: var(--accent);"></span>Full Year Diary &amp; Memories [J]</h3>
+          <button id="btn-close-journal" class="btn btn-icon"><span id="icon-close-journal" style="display:flex;"></span></button>
+        </div>
+        <div id="journal-list" style="padding: 1.25rem; overflow-y: auto; max-height: 60vh;"></div>
+      </div>
+    </div>
+
+    <!-- RPG Character Sheet & Inventory Modal -->
+    <div id="modal-character-sheet" class="modal-overlay">
+      <div class="modal-window" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div style="padding: 1.25rem; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span id="rpg-sheet-level" class="rpg-level-pill">Lvl 1</span>
+            <div>
+              <h3 id="rpg-sheet-title" style="font-family: var(--font-ui); color: var(--text-primary); font-size: 1.15rem; margin: 0;">Novice Exchangee</h3>
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 2px;">
+                <span id="rpg-sheet-xp-text" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary);">0 / 100 XP</span>
+                <span id="rpg-sheet-sp-badge" class="badge" style="display: none; background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 0.72rem;">1 Perk Point</span>
+              </div>
+            </div>
+          </div>
+          <button id="btn-close-character-sheet" class="btn btn-icon">&times;</button>
+        </div>
+
+        <div style="padding: 1rem 1.25rem; overflow-y: auto; flex: 1;">
+          <!-- Tabs Bar -->
+          <div class="rpg-tabs-bar">
+            <button class="rpg-tab-btn active" data-tab="sheet">Character &amp; Perks</button>
+            <button class="rpg-tab-btn" data-tab="inventory">Keepsakes &amp; Bag</button>
+            <button class="rpg-tab-btn" data-tab="quests">Quest Journal</button>
+          </div>
+
+          <!-- Tab 1: Character Sheet & Perks -->
+          <div id="rpg-tab-sheet" class="rpg-tab-pane">
+            <h4 style="font-family: var(--font-ui); font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.6rem;">Core Attributes &amp; Gear Buffs</h4>
+            <div id="rpg-attributes-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; margin-bottom: 1.25rem;"></div>
+
+            <h4 style="font-family: var(--font-ui); font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.6rem;">Exchange Perks &amp; Specializations</h4>
+            <div id="rpg-perks-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem;"></div>
+          </div>
+
+          <!-- Tab 2: Inventory & Keepsakes -->
+          <div id="rpg-tab-inventory" class="rpg-tab-pane" style="display: none;">
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Cultural souvenirs, travel items, and school gear collected during your year abroad. Each item grants unique passive benefits.
+            </p>
+            <div id="rpg-inventory-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem;"></div>
+          </div>
+
+          <!-- Tab 3: Quest Log -->
+          <div id="rpg-tab-quests" class="rpg-tab-pane" style="display: none;">
+            <div id="rpg-quests-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+  </div>
+
+  <!-- Main ES Module Script -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
+
